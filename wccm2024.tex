@@ -1,0 +1,200 @@
+\documentclass{wccm2024}
+
+\usepackage{graphicx}
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage{times}
+\usepackage{xcolor}
+\usepackage{subfig}
+\title{A primal hybrid finite element method to solve general compressible, quasi-incompressible and incompressible elasticity using stable H(div)-L2 spaces}
+
+\author{PHILIPPE R. B. DEVLOO$^{1}$, GIOVANE AVANCINI$^{2}$, NATHAN SHAUER$^{3}$ AND HUGO L. OLIVEIRA$^{4}$}
+
+\heading{Philippe R. B. Devloo, Giovane Avancini, Nathan Shauer and Hugo Luiz Oliveira}
+
+\address{$^{1}$ State University of Campinas, Faculty of Civil Engineering\\
+Av. Albert Einstein, 901 - Cidade Universitária, Campinas - SP, 13083-852\\
+phil@unicamp.br
+\and
+$^{2}$ State University of Campinas, Faculty of Civil Engineering\\
+Av. Albert Einstein, 901 - Cidade Universitária, Campinas - SP, 13083-852\\
+giovanea@unicamp.br
+\and
+$^{3}$ State University of Campinas, Faculty of Civil Engineering\\
+Av. Albert Einstein, 901 - Cidade Universitária, Campinas - SP, 13083-852\\
+shauer@unicamp.br
+\and
+$^{4}$ State University of Campinas, Faculty of Civil Engineering\\
+Av. Albert Einstein, 901 - Cidade Universitária, Campinas - SP, 13083-852\\
+hluiz@unicamp.br}
+
+\keywords{Hybrid finite element method, incompressible elasticity, De Rham compatible spaces}
+
+\abstract{Hybrid methods are usually derived from an extended variational principle, in which the interelement continuity of the functions subspace is removed and weakly enforced by means of a Lagrange multiplier. In this context, a new primal hybrid finite element formulation is presented, which uses H(div) conforming displacement functions and discontinuos L2 approximation for pressure together with shear traction functions to weakly enforce tangential displacement. This combination allows the simulation of compressible, quasi-incompressible and fully incompressible elastic solids, with convergence rates independent of its bulk modulus. The proposed approach benefits from the property that the divergence of the H(div) displacement functions is De Rham compatible with the (dual) pressure functions. The hybridization of the tangential displacements is weakly enforced through a lower order shear stress space. This leads to a saddle-point problem that is stable over the full range of poisson coefficient (large compressibility up to incompressible). Moreover, a boundary stress (normal and shear) can be recovered that satisfies elementwise equilibrium. Hybridizing the tangent stresses and condensing the internal degrees of freedom, a positive-definite matrix with improved spectral properties can be recovered. The stability, consistency and local conservation features are discussed in details. The formulation is tested and verified for different test cases.}
+
+\begin{document}
+\thispagestyle{empty}
+
+\section{INTRODUCTION}
+
+\section{GOVERNING EQUATIONS}
+
+In general elasticity, the governing equation of a continuum body $\Omega \in \mathbb{R}^3$ is given by:
+\vskip-.3cm
+\begin{equation} \label{eq:strong1}
+    -\nabla \cdot \boldsymbol{\sigma} - \mathbf{b} = \mathbf{0} \hspace{0.2cm} \text{in } \Omega \text{,} 
+\end{equation}
+
+\noindent where $\boldsymbol{\sigma}$ denotes the Cauchy stress tensor and $\mathbf{b}$ is the body forces vector. For the well-posedness sake, proper boundary conditions need to be imposed on the Dirichlet boundary ($\partial\Omega_D$) and on the Neumann boundary ($\partial\Omega_N$), as said,
+\vskip-.3cm
+\begin{equation}
+    \mathbf{u} = \mathbf{u}_D \hspace{0.2cm} \text{on } \partial\Omega_D \text{,}
+\end{equation}
+\vskip-.3cm
+\begin{equation}
+    \boldsymbol{\sigma} \cdot \mathbf{n} = \mathbf{h} \hspace{0.2cm} \text{on } \partial\Omega_N \text{.} 
+\end{equation}
+
+The most simplistic way to predict the elastic behaviour of a body under small displacements and strains is through the Generalized Hook law, which relates the stresses and deformations by:
+\vskip-.3cm
+\begin{equation}
+    \boldsymbol{\sigma} = 2\mu \boldsymbol{\varepsilon} + \lambda \text{tr}(\boldsymbol{\varepsilon}) \mathbf{I} \text{,}
+\end{equation}
+
+\noindent where $\mu$ and $\lambda$ are known as Lamé constants, $\boldsymbol{\varepsilon}$ is the infinitesimal strain tensor, computed as:
+\vskip-.3cm
+\begin{equation} \label{eq:strain}
+    \boldsymbol{\varepsilon}=\frac{1}{2}(\nabla\mathbf{u}^T+\nabla\mathbf{u}) \text{,}
+\end{equation}
+
+\noindent and $\mathbf{I}$ is the identity matrix. By recalling that the hydrostatic pressure is defined as
+
+\begin{equation}
+    p = -\frac{\text{tr}(\boldsymbol{\sigma})}{3}=-\frac{(2\mu+\lambda)}{3}\text{tr}(\boldsymbol{\varepsilon}),
+\end{equation}
+
+\noindent and considering that $\boldsymbol{\sigma} = 2\mu \boldsymbol{\varepsilon}-p\mathbf{I}$, Eq. \eqref{eq:strong1} can be rewritten in a mixed form so the boundary-valued problem reads:
+\vskip-.3cm
+\begin{equation} \label{eq:strong2}
+    \begin{cases}
+        -\nabla \cdot \boldsymbol{\sigma}\left(\mathbf{u},p\right) - \mathbf{b} &= \mathbf{0} \hspace{0.2cm} \text{in } \Omega\\
+        -\nabla \cdot \mathbf{u} - \frac{3}{2\mu+\lambda}p &= 0\hspace{0.2cm} \text{in } \Omega\\
+        \mathbf{u} &= \mathbf{u}_D \hspace{0.2cm} \text{on } \partial\Omega_D\\
+        \boldsymbol{\sigma} \cdot \mathbf{n} &= \mathbf{h} \hspace{0.2cm} \text{on } \partial\Omega_N
+    \end{cases}
+\end{equation}
+
+One notices that when $\lambda \rightarrow \infty$, Eq. \eqref{eq:strong2} recovers the classical mass conservation form of an incompressible material i.e. $\nabla \cdot \mathbf{u}=0$.
+
+\section{WEAK FORM AND HYBRID FORMULATION}
+
+Let $\mathcal{T}=\{\Omega_e,e=1, \cdots, n_e \}$ be a partition of $\Omega$ in finite elements $\Omega_e$ with usual shapes, i.e. triangles or quadrilaterals for $d=2$ and tetrahedra and hexahedra for $d=3$. The set $\mathcal{E}$ contains all the element edges $E$ and $\mathcal{E}_0=\{E \in \mathcal{E} : E \subset \Omega \}$ denotes the internal edges or element interfaces. Let $\mathbf{V}^{div} \subset H(\text{div},\Omega)$, $\Psi^d \subset L^2(\Omega)$ be spaces of scalar piece-wise and vector functions, respectively, for which the relation $\nabla \cdot \mathbf{V}^{div} \in \Psi^d$ is true. The weak statement for semi-hybrid formulation thus reads: find $\{\mathbf{u},p,\boldsymbol{\lambda}\} \in \mathbf{V}^{div} \times \Psi^d \times \boldsymbol{\Lambda}^t$ such that for all $\mathbf{v},q,\boldsymbol{\eta} \in \mathbf{V}^{div} \times \Psi^d \times \boldsymbol{\Lambda}^t$,
+
+\section{NUMERICAL EXAMPLES}
+
+\subsection{Cantilever beam subjected to an end shear load \label{subsec:bishop}}
+
+Figure \ref{fig:bishop-beam-geometry} shows a cantilever beam. The analysis is carried out with $L=5$, $a=0.5$, $b=0.5$ as in \cite{bishop2014displacement}. The beam is assumed to be fixed at $z=0$ and subjected to an unitary shear-force $F=\int_{-b}^{b}\int_{-a}^{a}\sigma_{yz}dxdy=1$ at $z=L$. The Young modulus is $E=1$ and and different values for the poisson coefficient is used to test the formulation in different compressibility regimes, ie. $\nu=0.3$, $\nu=0.4999$ and $\nu=0.5$.
+
+% \begin{figure}[H]
+% 	\centering
+% 	\includegraphics[width=0.5\textwidth]{bishop-beam-geometry}
+% 	\caption{Cantilever beam subjected to an end shear load - geometry}
+% 	\label{fig:bishop-beam-geometry}
+% \end{figure}
+
+The analytical solutions for the stresses and displacements are available in \cite{bishop2014displacement} and written below:
+\vskip-.6cm
+\begin{equation} \label{eq:bishop-stress}
+	\begin{aligned}
+		\sigma_{xx} &= \sigma_{xy} = \sigma_{yy} = 0 \text{,}\\
+		\sigma_{zz} &= \frac{F}{I} yz \text{,}\\
+		\sigma_{xz} &= \frac{F}{I} \frac{2a^2}{\pi^2}\frac{\nu}{1+\nu} \sum_{n=1}^{\infty} \frac{(-1)^n}{n^2} \text{sin}\left(n\pi x/a\right) \frac{\text{sinh}\left( n\pi y/a \right)}{\text{cosh}\left( n\pi b/a \right)} \text{,}\\
+		\sigma_{yz} &= \frac{F}{I} \frac{b^2-y^2}{2} + \frac{F}{I}\frac{\nu}{1+\nu} \left[ \frac{3x^2-a^2}{6} - \frac{2a^2}{\pi^2} \sum_{n=1}^{\infty} \frac{(-1)^n}{n^2} \text{cos}\left(n\pi x/a\right) \frac{\text{cosh}\left( n\pi y/a \right)}{\text{cosh}\left( n\pi b/a \right)}  \right]\text{,}\\
+	\end{aligned}
+\end{equation}
+and
+\vskip-.6cm
+\begin{equation} \label{eq:bishop-displacement}
+	\begin{split}
+		u_x & = -\frac{F\nu}{EI} xyz \text{,}\\
+		u_y & = \frac{F}{EI} \left[ \frac{\nu}{2}\left(x^2-y^2\right)z - \frac{1}{6}z^3 \right] \text{,}\\
+		u_z & = \frac{F}{EI} \left[ \frac{1}{2y}\left(\nu x^2+z^2\right)z + \frac{1}{6}\nu y^3 +(1+\nu) \left(b^2 y -\frac{1}{3}y^3\right) -\frac{1}{3}a^2 \nu y \right. \\
+		&\qquad\quad \left.-\frac{4a^3\nu}{\pi^3} \sum_{n=1}^{\infty} \frac{(-1)^n}{n^3} \text{cos}\left(n\pi x/a\right) \frac{\text{sinh}\left( n\pi y/a \right)}{\text{cosh}\left( n\pi b/a \right)} \right] \text{.}
+	\end{split}
+\end{equation}
+\noindent where $I=4ab^3/3$ is the second moment of area about the $x$-axis, and the series above are evaluated with a finite number of terms $n=5$.
+
+The beam is discretized using hexahedral elements, where the element size is computed as $h_e=1/2^{N}$, with $N=\{0,1,2,3,4\}$. The coarsest ($h_e=1$) and finest ($h_e=0.0625$) meshes are shown in Figure \ref{fig:bishop-meshes}. A convergence test is performed for displacement, pressure, stress and mass conservation, where the error is computed according to the $L^2$ norm defined as:
+\vskip-.3cm
+\begin{equation} \label{eq:bishop-errors}
+	\left\| \mathbf{u} - \mathbf{u}^h \right\|_{L^2} \doteq \left[ \sum_{e=1}^{n} \int_{\Omega_e} \left(\mathbf{u} - \mathbf{u}^h\right)^2 d\Omega_e\right]^{1/2} \text{.}
+\end{equation}
+
+\begin{figure}[!htb]
+	\centering
+	\subfloat[Coarsest]{\includegraphics[width=0.45\textwidth]{figs/bishop-mesh1.pdf}}\hfill
+	\subfloat[Finest]{\includegraphics[width=0.45\textwidth]{figs/bishop-mesh2.pdf}}
+	\caption{Cantilever beam subjected to an end shear load - meshes used for the convergence test}
+	\label{fig:bishop-meshes}
+\end{figure}
+
+The results are depicted in Figures \ref{fig:bishop-convergence-nu-03}-\ref{fig:bishop-convergence-nu-05} and present optimal convergence rates of $k+1$ for the displacement and $k$ for the remaining variables independently of the poisson coefficient. This is a nice feature as many formulations present a locking phenomena under quasi and full incompressibility. For the incompressible case ($\nu=0.5$), a divergence free displacement field is obtained even for the coarsest mesh thanks to the stable pair $H(\text{div},\Omega)$-$L^2(\Omega)$, with the error bounded to the machine precision.
+
+\begin{figure}
+    \centering
+    \subfloat[\label{fig:bishop-convergence-nu-03-a}Displacement]{\includegraphics[trim={0cm 0cm 2.0cm 0cm},clip,scale=0.75]{figs/bishop-disp-03.pdf}} \hfill
+    \subfloat[\label{fig:bishop-convergence-nu-03-b}Pressure]{\includegraphics[trim={0cm 0cm 2.0cm 0cm},clip,scale=0.75]{figs/bishop-pres-03.pdf}}
+    \includegraphics[trim={8.5cm 0cm 0cm 0cm},clip,scale=0.75]{figs/bishop-pres-03.pdf}
+    \subfloat[\label{fig:bishop-convergence-nu-03-c}Stress]{\includegraphics[trim={0cm 0cm 2.0cm 0cm},clip,scale=0.75]{figs/bishop-stress-03.pdf}} \hfill
+    \subfloat[\label{fig:bishop-convergence-nu-03-d}Divergence]{\includegraphics[trim={0cm 0cm 2.0cm 0cm},clip,scale=0.75]{figs/bishop-div-03.pdf}}
+    \includegraphics[trim={8.5cm 0cm 0cm 0cm},clip,scale=0.75]{figs/bishop-pres-03.pdf}
+    \caption{Cantilever beam subjected to an end shear load - convergence analysis for the compressible case ($\nu=0.3$)}
+    \label{fig:bishop-convergence-nu-03}
+\end{figure}
+
+\begin{figure}
+    \centering
+    \subfloat[\label{fig:bishop-convergence-nu-04999-a}Displacement]{\includegraphics[trim={0cm 0cm 2.0cm 0cm},clip,scale=0.75]{figs/bishop-disp-03.pdf}} \hfill
+    \subfloat[\label{fig:bishop-convergence-nu-04999-b}Pressure]{\includegraphics[trim={0cm 0cm 2.0cm 0cm},clip,scale=0.75]{figs/bishop-pres-04999.pdf}}
+    \includegraphics[trim={8.5cm 0cm 0cm 0cm},clip,scale=0.75]{figs/bishop-pres-03.pdf}
+    \subfloat[\label{fig:bishop-convergence-nu-04999-c}Stress]{\includegraphics[trim={0cm 0cm 2.0cm 0cm},clip,scale=0.75]{figs/bishop-stress-04999.pdf}} \hfill
+    \subfloat[\label{fig:bishop-convergence-nu-04999-d}Divergence]{\includegraphics[trim={0cm 0cm 2.0cm 0cm},clip,scale=0.75]{figs/bishop-div-04999.pdf}}
+    \includegraphics[trim={8.5cm 0cm 0cm 0cm},clip,scale=0.75]{figs/bishop-pres-04999.pdf}
+    \caption{Cantilever beam subjected to an end shear load - convergence analysis for the quasi-incompressible case ($\nu=0.4999$)}
+    \label{fig:bishop-convergence-nu-04999}
+\end{figure}
+
+\begin{figure}
+    \centering
+    \subfloat[\label{fig:bishop-convergence-nu-05-a}Displacement]{\includegraphics[trim={0cm 0cm 2.0cm 0cm},clip,scale=0.75]{figs/bishop-disp-05.pdf}} \hfill
+    \subfloat[\label{fig:bishop-convergence-nu-05-b}Pressure]{\includegraphics[trim={0cm 0cm 2.0cm 0cm},clip,scale=0.75]{figs/bishop-pres-05.pdf}}
+    \includegraphics[trim={8.5cm 0cm 0cm 0cm},clip,scale=0.75]{figs/bishop-pres-03.pdf}
+    \subfloat[\label{fig:bishop-convergence-nu-05-c}Stress]{\includegraphics[trim={0cm 0cm 2.0cm 0cm},clip,scale=0.75]{figs/bishop-stress-05.pdf}} \hfill
+    \subfloat[\label{fig:bishop-convergence-nu-05-d}Divergence]{\includegraphics[trim={0cm 0cm 2.0cm 0cm},clip,scale=0.75]{figs/bishop-div-05.pdf}}
+    \includegraphics[trim={8.5cm 0cm 0cm 0cm},clip,scale=0.75]{figs/bishop-pres-03.pdf}
+    \caption{Cantilever beam subjected to an end shear load - convergence analysis for the incompressible case ($\nu=0.5$)}
+    \label{fig:bishop-convergence-nu-05}
+\end{figure}
+
+Figure \ref{fig:bishop-snapshot} plots the displacement, pressure, normal and shear stresses distributions obtained with the finest mesh using $k=2$ over the deformed configuration of the beam for the compressible case. The results qualitatively agrees with the reference solution of \cite{bishop2014displacement}.
+
+\begin{figure}
+    \centering
+    \subfloat[\label{fig:bishop-snapshot-a}Displacement]{\includegraphics[trim={2.5cm 0cm 9.2cm 0cm},clip,scale=0.2]{figs/bishop-snapshot-a.pdf}} \hfill
+    \subfloat[\label{fig:bishop-snapshot-b}Pressure]{\includegraphics[trim={2.5cm 0cm 9.2cm 0cm},clip,scale=0.2]{figs/bishop-snapshot-b.pdf}} \\
+    \subfloat[\label{fig:bishop-snapshot-c}Normal stress $\sigma_{zz}$]{\includegraphics[trim={2.5cm 0cm 9.2cm 0cm},clip,scale=0.2]{figs/bishop-snapshot-c.pdf}} \hfill
+    \subfloat[\label{fig:bishop-snapshot-d}Shear stress $\sigma_{yz}$]{\includegraphics[trim={2.5cm 0cm 9.2cm 0cm},clip,scale=0.2]{figs/bishop-snapshot-d.pdf}}
+    \caption{Cantilever beam subjected to an end shear load - snapshots for $\nu=0.3$}
+    \label{fig:bishop-snapshot}
+\end{figure}
+
+\section{CONCLUSIONS}
+
+\bibliographystyle{plain}
+\bibliography{references}
+
+\end{document}
+
+
