@@ -7,6 +7,8 @@
 \usepackage{times}
 \usepackage{xcolor}
 \usepackage{subfig}
+\usepackage{stmaryrd}
+
 \title{A primal hybrid finite element method to solve general compressible, quasi-incompressible and incompressible elasticity using stable H(div)-L2 spaces}
 
 \author{PHILIPPE R. B. DEVLOO$^{1}$, GIOVANE AVANCINI$^{2}$, NATHAN SHAUER$^{3}$ AND HUGO L. OLIVEIRA$^{4}$}
@@ -56,7 +58,7 @@ In general elasticity, the governing equation of a continuum body $\Omega \in \m
     \boldsymbol{\sigma} \cdot \mathbf{n} = \mathbf{h} \hspace{0.2cm} \text{on } \partial\Omega_N \text{.} 
 \end{equation}
 
-The most simplistic way to predict the elastic behaviour of a body under small displacements and strains is through the Generalized Hook law, which relates the stresses and deformations by:
+The Generalized Hook law relates the stresses and strains by:
 \vskip-.3cm
 \begin{equation}
     \boldsymbol{\sigma} = 2\mu \boldsymbol{\varepsilon} + \lambda \text{tr}(\boldsymbol{\varepsilon}) \mathbf{I} \text{,}
@@ -74,22 +76,54 @@ The most simplistic way to predict the elastic behaviour of a body under small d
     p = -\frac{\text{tr}(\boldsymbol{\sigma})}{3}=-\frac{(2\mu+\lambda)}{3}\text{tr}(\boldsymbol{\varepsilon}),
 \end{equation}
 
-\noindent and considering that $\boldsymbol{\sigma} = 2\mu \boldsymbol{\varepsilon}-p\mathbf{I}$, Eq. \eqref{eq:strong1} can be rewritten in a mixed form so the boundary-valued problem reads:
+\noindent and considering that $\boldsymbol{\sigma} = \boldsymbol{\sigma}'-p\mathbf{I}$, Eq. \eqref{eq:strong1} can be rewritten in a mixed form so the boundary-valued problem reads:
 \vskip-.3cm
 \begin{equation} \label{eq:strong2}
     \begin{cases}
-        -\nabla \cdot \boldsymbol{\sigma}\left(\mathbf{u},p\right) - \mathbf{b} &= \mathbf{0} \hspace{0.2cm} \text{in } \Omega\\
+        -\nabla \cdot \boldsymbol{\sigma}'\left(\mathbf{u}\right) + \nabla p - \mathbf{b} &= \mathbf{0} \hspace{0.2cm} \text{in } \Omega\\
         -\nabla \cdot \mathbf{u} - \frac{3}{2\mu+\lambda}p &= 0\hspace{0.2cm} \text{in } \Omega\\
         \mathbf{u} &= \mathbf{u}_D \hspace{0.2cm} \text{on } \partial\Omega_D\\
         \boldsymbol{\sigma} \cdot \mathbf{n} &= \mathbf{h} \hspace{0.2cm} \text{on } \partial\Omega_N
     \end{cases}
 \end{equation}
 
+\noindent where $\boldsymbol{\sigma}'=\mathcal{D}^{'}:\boldsymbol{\varepsilon}$ is the deviatoric stress tensor and $\mathcal{D}^{'}$ is the fourth-order deviatoric part of the elasticity tensor.
+
 One notices that when $\lambda \rightarrow \infty$, Eq. \eqref{eq:strong2} recovers the classical mass conservation form of an incompressible material i.e. $\nabla \cdot \mathbf{u}=0$.
 
-\section{WEAK FORM AND HYBRID FORMULATION}
+\section{WEAK FORM AND FINITE ELEMENT DISCRETIZATION}
 
-Let $\mathcal{T}=\{\Omega_e,e=1, \cdots, n_e \}$ be a partition of $\Omega$ in finite elements $\Omega_e$ with usual shapes, i.e. triangles or quadrilaterals for $d=2$ and tetrahedra and hexahedra for $d=3$. The set $\mathcal{E}$ contains all the element edges $E$ and $\mathcal{E}_0=\{E \in \mathcal{E} : E \subset \Omega \}$ denotes the internal edges or element interfaces. Let $\mathbf{V}^{div} \subset H(\text{div},\Omega)$, $\Psi^d \subset L^2(\Omega)$ be spaces of scalar piece-wise and vector functions, respectively, for which the relation $\nabla \cdot \mathbf{V}^{div} \in \Psi^d$ is true. The weak statement for semi-hybrid formulation thus reads: find $\{\mathbf{u},p,\boldsymbol{\lambda}\} \in \mathbf{V}^{div} \times \Psi^d \times \boldsymbol{\Lambda}^t$ such that for all $\mathbf{v},q,\boldsymbol{\eta} \in \mathbf{V}^{div} \times \Psi^d \times \boldsymbol{\Lambda}^t$,
+The variational form of Eqs. \eqref{eq:strong2} can be obtained by means of the weighted residual method. Depending on the choice of test functions and approximation spaces, different formulations can be derived. We shall start from the most simplistic one, the primal displacement formulation and then move to the fully hybrid scheme.
+
+Let $\mathcal{T}=\{\Omega_e,e=1, \cdots, n_e \}$ be a partition of $\Omega$ in $n_e$ finite elements $\Omega_e$ with hexahedral shape for $d=3$. The set $\mathcal{E}$ contains all the element edges $E$ and $\mathcal{E}_0=\{E \in \mathcal{E} : E \subset \Omega \}$ denotes the internal edges or element interfaces. Let introduce the following function spaces: 
+
+\subsection{Primal displacement formulation}
+
+The primal displacement formulation is obtained by multiplying Eq. \eqref{eq:strong1} by test functions $\mathbf{v} \in \mathbf{V}\text{ } | \text{ }\mathbf{V} \subset H^1(\mathcal{T})$ and integrating over the discretized domain $\mathcal{T}$ \cite{becker1981finite}. The weak statement reads: find $\mathbf{u} \in \mathbf{V}$ such that for all $\mathbf{v} \in \mathbf{V}$,
+
+\begin{equation} \label{eq:primal-displacement}
+    \sum_{\Omega_e \in \mathcal{T}} \int_{\Omega_e} \boldsymbol{\varepsilon}(\mathbf{u}) : \mathcal{D}^{'} : \boldsymbol{\varepsilon}(\mathbf{v}) d\Omega_e = \sum_{\Omega_e \in \mathcal{T}} \left(\int_{\Omega_e} \mathbf{b} \cdot \mathbf{v} d\Omega_e + \int_{\Gamma_N} \mathbf{h} \cdot \mathbf{v} d\partial\Omega_e \right)
+\end{equation}
+
+\noindent is satisfied. Although the primal displacement formulation is simple to implement, it has some limitations i.e. locking phenomena under bending and incompressibility. To overcome these limitations, a shall introduce next the semi-hybrid formulation.
+
+\subsection{Semi-hybrid formulation}
+
+In \cite{carvalho2024semi}, the authors proposed a semi-hybrid formulation for Stokes-Brinkman flows that use $H(\text{div})$ conforming velocity functions and discontinuos $L^2$ approximation for pressure. The same ideia can also be applied to elasticity. Let $\mathcal{V} = \mathbf{V}\cap H(\text{div},\Omega)$, $\Psi \subset L^2(\Omega)$ be spaces of vector functions and piece-wise scalars, respectively, for which the relation $\nabla \cdot \mathcal{V} \in \Psi$ holds. As $H(\text{div})$ approximation only guarantees the continuity of normal componentes of a vector across elements interface, a hybridization of the tangential velocity is performed. We introduce a third space defined as $\boldsymbol{\Lambda}^t \subset H^{-1/2}(\partial\Omega_e)$, for which the Lagrange multiplier $\boldsymbol{\lambda}^t \in \boldsymbol{\Lambda}^t$ has the meaning of a shear traction to weakly enforce the tangential displacement continuity. 
+
+The weak statement for the semi-hybrid formulation thus reads: find $\{\mathbf{u},p,\boldsymbol{\lambda}^t\} \in \mathcal{V} \times \Psi \times \boldsymbol{\Lambda}^t$ such that for all $\mathbf{v},q,\boldsymbol{\eta}^t \in \mathcal{V}\times \Psi \times \boldsymbol{\Lambda}^t$:
+
+\begin{equation} \label{eq:semihybrid1}
+    \begin{split}
+        \sum_{\Omega_e \in \mathcal{T}} \left( \int_{\Omega_e} 2\mu\boldsymbol{\varepsilon}(\mathbf{v}) \cdot \boldsymbol{\varepsilon}(\mathbf{u}) d\Omega_e + \int_{\Omega_e} p (\nabla \cdot \mathbf{v}) d\Omega_e + \int_{\mathcal{E}^0} \boldsymbol{\lambda}^t \cdot \llbracket \mathbf{v} \rrbracket d\partial\Omega_e \right) = \\ \sum_{\Omega_e \in \mathcal{T}} \left( \int_{\Omega_e} \mathbf{v} \cdot \mathbf{f} d\Omega_e + \int_{\Gamma} \mathbf{v} \cdot \boldsymbol{\sigma}_N d\partial\Omega_e \right) \text{,}
+    \end{split}
+\end{equation}
+\begin{equation} \label{eq:semihybrid2}
+    \sum_{\Omega_e \in \mathcal{T}} \left(-\int_{\Omega_e} (\nabla \cdot \mathbf{u}) q d\Omega_e -\int_{\Omega_e} \frac{3}{2\mu+\lambda}p q d\Omega_e \right) = 0 \hspace{.2cm} \text{and}
+\end{equation}
+\begin{equation} \label{eq:semihybrid3}
+    \sum_{\Omega_e \in \mathcal{T}} \int_{\mathcal{E}^0} \llbracket \mathbf{u} \rrbracket \cdot \mathbf{\eta}^t d\partial\Omega_e = 0
+\end{equation}
 
 \section{NUMERICAL EXAMPLES}
 
