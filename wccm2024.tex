@@ -80,10 +80,10 @@ The Generalized Hook law relates the stresses and strains by:
 \vskip-.3cm
 \begin{equation} \label{eq:strong2}
     \begin{cases}
-        -\nabla \cdot \boldsymbol{\sigma}'\left(\mathbf{u}\right) + \nabla p - \mathbf{b} &= \mathbf{0} \hspace{0.2cm} \text{in } \Omega\\
-        -\nabla \cdot \mathbf{u} - \frac{3}{2\mu+\lambda}p &= 0\hspace{0.2cm} \text{in } \Omega\\
-        \mathbf{u} &= \mathbf{u}_D \hspace{0.2cm} \text{on } \partial\Omega_D\\
-        \boldsymbol{\sigma} \cdot \mathbf{n} &= \mathbf{h} \hspace{0.2cm} \text{on } \partial\Omega_N
+        -\nabla \cdot \boldsymbol{\sigma}'\left(\mathbf{u}\right) + \nabla p - \mathbf{b} = \mathbf{0} \hspace{0.2cm} \text{in } \Omega\\
+        -\nabla \cdot \mathbf{u} - \frac{3}{2\mu+\lambda}p = 0\hspace{0.2cm} \text{in } \Omega\\
+        \mathbf{u} = \mathbf{u}_D \hspace{0.2cm} \text{on } \partial\Omega_D\\
+        \boldsymbol{\sigma} \cdot \mathbf{n} = \mathbf{h} \hspace{0.2cm} \text{on } \partial\Omega_N
     \end{cases}
 \end{equation}
 
@@ -115,15 +115,17 @@ The weak statement for the semi-hybrid formulation thus reads: find $\{\mathbf{u
 
 \begin{equation} \label{eq:semihybrid1}
     \begin{split}
-        \sum_{\Omega_e \in \mathcal{T}} \left( \int_{\Omega_e} 2\mu\boldsymbol{\varepsilon}(\mathbf{v}) \cdot \boldsymbol{\varepsilon}(\mathbf{u}) d\Omega_e + \int_{\Omega_e} p (\nabla \cdot \mathbf{v}) d\Omega_e + \int_{\mathcal{E}^0} \boldsymbol{\lambda}^t \cdot \llbracket \mathbf{v} \rrbracket d\partial\Omega_e \right) = \\ \sum_{\Omega_e \in \mathcal{T}} \left( \int_{\Omega_e} \mathbf{v} \cdot \mathbf{f} d\Omega_e + \int_{\Gamma} \mathbf{v} \cdot \boldsymbol{\sigma}_N d\partial\Omega_e \right) \text{,}
+        \sum_{\Omega_e \in \mathcal{T}} \left( \int_{\Omega_e} \boldsymbol{\varepsilon}(\mathbf{v}) : \mathcal{D}^{'} : \boldsymbol{\varepsilon}(\mathbf{u}) d\Omega_e + \int_{\Omega_e} p (\nabla \cdot \mathbf{v}) d\Omega_e + \int_{\mathcal{E}^0} \boldsymbol{\lambda}^t \cdot \llbracket \mathbf{v} \rrbracket d\partial\Omega_e \right) = \\ \sum_{\Omega_e \in \mathcal{T}} \left( \int_{\Omega_e} \mathbf{v} \cdot \mathbf{f} d\Omega_e + \int_{\Gamma} \mathbf{v} \cdot \boldsymbol{\sigma}_N d\partial\Omega_e \right)
     \end{split}
 \end{equation}
 \begin{equation} \label{eq:semihybrid2}
-    \sum_{\Omega_e \in \mathcal{T}} \left(-\int_{\Omega_e} (\nabla \cdot \mathbf{u}) q d\Omega_e -\int_{\Omega_e} \frac{3}{2\mu+\lambda}p q d\Omega_e \right) = 0 \hspace{.2cm} \text{and}
+    \sum_{\Omega_e \in \mathcal{T}} \left(-\int_{\Omega_e} (\nabla \cdot \mathbf{u}) q d\Omega_e -\int_{\Omega_e} \frac{3}{2\mu+\lambda}p q d\Omega_e \right) = \mathbf{0}
 \end{equation}
 \begin{equation} \label{eq:semihybrid3}
-    \sum_{\Omega_e \in \mathcal{T}} \int_{\mathcal{E}^0} \llbracket \mathbf{u} \rrbracket \cdot \mathbf{\eta}^t d\partial\Omega_e = 0
+    \sum_{\Omega_e \in \mathcal{T}} \int_{\mathcal{E}^0} \llbracket \mathbf{u} \rrbracket \cdot \mathbf{\eta}^t d\partial\Omega_e = \mathbf{0} \text{,}
 \end{equation}
+
+\noindent where $\mathbf{v}$, $q$ and $\boldsymbol{\eta}^t$ are test functions for velocity, pressure and tangential traction, respectively, $\llbracket \cdot \rrbracket$ stands for the jump operator on the interface $\mathcal{E}^0$ between two neighbour elements $\Omega_1$ and $\Omega_2$, defined as $\llbracket \mathbf{v} \rrbracket = \mathbf{v} \vert_{\Omega_1} - \mathbf{v} \vert_{\Omega_2}$. Equation \eqref{eq:semihybrid3} plays the role of weakly enforcing the tangential displacement continuity over the element interfaces.
 
 \section{NUMERICAL EXAMPLES}
 
