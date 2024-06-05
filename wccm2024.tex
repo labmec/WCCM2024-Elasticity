@@ -40,6 +40,12 @@ hluiz@unicamp.br}
 
 \section{INTRODUCTION}
 
+In the context of linear elasticity, several numerical methods have been developed in the past years. The most used one is the Finite Element Method (FEM). Using a continuous Galerkin approach to approximate the displacements may lead to shear-locking phenomenon due to spurious energy modes under bending \cite{bletzinger2000unified,belytschko1985stress} or volume-locking under quasi or full incompressibility, as the stresses go to infinity \cite{neto2005f,cervera2003mixed}.
+
+There are different ways in the literature to overcome these drawbacks. One possible choice is to employ a mixed formulation \cite{brezzi2012mixed,arnold1988new} where the displacements and the stresses (or pressure) are approximated independently - i.e. the Taylor Hood elements \cite{taylor1973numerical} fulfill the \textit{inf-sup} condition yielding stable results for incompressible regime. This kind of approximation, on the other hand, is not locally conservative as it does not satisfy the divergence constraint in a strong manner. Another possibility is to use hybrid methods \cite{} where the interelement continuity of a given field is broken and weakly imposed by means of a Lagrange multiplier (see for instance \cite{raviart1977primal,harder2016hybrid,farhloul1997dual}).
+
+In this work we extend the semi-hybrid approach proposed in \cite{carvalho2024semi} for Stokes problems to develop a new primal hybrid finite element formulation for elasticity based on a De Rham compatible pair $H(\text{div})-L^2$ for normal displacements and pressure. The $H(\text{div})$ functions are constructed using a systematic methodology described in \cite{devloo2022efficient,de2013new}.
+
 \section{GOVERNING EQUATIONS}
 
 In general elasticity, the governing equation of a continuum body $\Omega \in \mathbb{R}^3$ is given by:
@@ -81,13 +87,38 @@ The Generalized Hook law relates the stresses and strains by:
 \begin{equation} \label{eq:strong2}
     \begin{cases}
         -\nabla \cdot \boldsymbol{\sigma}'\left(\mathbf{u}\right) + \nabla p - \mathbf{b} = \mathbf{0} \hspace{0.2cm} \text{in } \Omega\\
-        -\nabla \cdot \mathbf{u} - \frac{3}{2\mu+\lambda}p = 0\hspace{0.2cm} \text{in } \Omega\\
+        -\nabla \cdot \mathbf{u} - \frac{1}{\kappa}p = 0\hspace{0.2cm} \text{in } \Omega\\
         \mathbf{u} = \mathbf{u}_D \hspace{0.2cm} \text{on } \partial\Omega_D\\
         \boldsymbol{\sigma} \cdot \mathbf{n} = \mathbf{h} \hspace{0.2cm} \text{on } \partial\Omega_N
     \end{cases}
 \end{equation}
 
-\noindent where $\boldsymbol{\sigma}'=\mathcal{D}^{'}:\boldsymbol{\varepsilon}$ is the deviatoric stress tensor and $\mathcal{D}^{'}$ is the fourth-order deviatoric part of the elasticity tensor.
+\noindent where $\kappa=\frac{2\mu+\lambda}{3}$ is the material bulk modulus, $\mathcal{D}^{'}$ is the fourth-order deviatoric part of the elasticity tensor and $\boldsymbol{\sigma}'=\mathcal{D}^{'}:\boldsymbol{\varepsilon}$ is the deviatoric stress tensor, written using a Voight notation as:
+
+\begin{equation}
+    \begin{Bmatrix}
+        \boldsymbol{\sigma}'_{xx}\\
+        \boldsymbol{\sigma}'_{yy}\\
+        \boldsymbol{\sigma}'_{zz}\\
+        \boldsymbol{\sigma}'_{xy}\\
+        \boldsymbol{\sigma}'_{xz}\\
+        \boldsymbol{\sigma}'_{yz}
+    \end{Bmatrix} = 2\mu\begin{bmatrix}
+        2/3 & -1/3 & -1/3 & 0 & 0 & 0\\
+        -1/3 & 2/3 & -1/3 & 0 & 0 & 0\\
+        -1/3 & -1/3 & 2/3 & 0 & 0 & 0\\
+        0 & 0 & 0 & 1 & 0 & 0\\
+        0 & 0 & 0 & 0 & 1 & 0\\
+        0 & 0 & 0 & 0 & 0 & 1
+    \end{bmatrix} \cdot \begin{Bmatrix}
+        \boldsymbol{\varepsilon}_{xx}\\
+        \boldsymbol{\varepsilon}_{yy}\\
+        \boldsymbol{\varepsilon}_{zz}\\
+        \boldsymbol{\varepsilon}_{xy}\\
+        \boldsymbol{\varepsilon}_{xz}\\
+        \boldsymbol{\varepsilon}_{yz}
+    \end{Bmatrix} \text{.}
+\end{equation}
 
 One notices that when $\lambda \rightarrow \infty$, Eq. \eqref{eq:strong2} recovers the classical mass conservation form of an incompressible material i.e. $\nabla \cdot \mathbf{u}=0$.
 
@@ -127,11 +158,32 @@ The weak statement for the semi-hybrid formulation thus reads: find $\{\mathbf{u
 
 \noindent where $\mathbf{v}$, $q$ and $\boldsymbol{\eta}^t$ are test functions for velocity, pressure and tangential traction, respectively, $\llbracket \cdot \rrbracket$ stands for the jump operator on the interface $\mathcal{E}^0$ between two neighbour elements $\Omega_1$ and $\Omega_2$, defined as $\llbracket \mathbf{v} \rrbracket = \mathbf{v} \vert_{\Omega_1} - \mathbf{v} \vert_{\Omega_2}$. Equation \eqref{eq:semihybrid3} plays the role of weakly enforcing the tangential displacement continuity over the element interfaces.
 
-\section{NUMERICAL EXAMPLES}
+\subsection{Fully hybrid formulation}
 
-\subsection{Cantilever beam subjected to an end shear load \label{subsec:bishop}}
+Although mathematically consistent, the semi-hybrid formulation poses some challenges from a numerical perspective. It gives rise to a saddle-point problem with two different constraints: $p$ and $\boldsymbol{\lambda}^t$. This structure significantly increases the efforts required to consistently and stably solve the linear system.
 
-Figure \ref{fig:bishop-beam-geometry} shows a cantilever beam. The analysis is carried out with $L=5$, $a=0.5$, $b=0.5$ as in \cite{bishop2014displacement}. The beam is assumed to be fixed at $z=0$ and subjected to an unitary shear-force $F=\int_{-b}^{b}\int_{-a}^{a}\sigma_{yz}dxdy=1$ at $z=L$. The Young modulus is $E=1$ and and different values for the poisson coefficient is used to test the formulation in different compressibility regimes, ie. $\nu=0.3$, $\nu=0.4999$ and $\nu=0.5$.
+We propose a second hybridization of the tangential stresses in order to recover its primal form. Introducing the space $\mathcal{L}^t \subset H^{1/2}(\partial\Omega_e)$ for the tangential velocity, the hybrid form thus reads: find $\{\mathbf{u},p,\boldsymbol{\lambda},\mathbf{u}^t\} \in \mathcal{V} \times \Psi \times \boldsymbol{\Lambda}^t \times \mathcal{L}^t$ such that for all $\mathbf{v},q,\boldsymbol{\eta},\mathbf{v}^t \in \mathcal{V} \times \Psi \times \boldsymbol{\Lambda}^t,\mathcal{L}^t$, the following equations are satisfied:
+
+\begin{equation} \label{eq:hybrid1}
+    \begin{split}
+        \sum_{\Omega_e \in \mathcal{T}} \left( \int_{\Omega_e} \boldsymbol{\varepsilon}(\mathbf{v}) : \mathcal{D}^{'} : \boldsymbol{\varepsilon}(\mathbf{u}) d\Omega_e + \int_{\Omega_e} p (\nabla \cdot \mathbf{v}) d\Omega_e + \int_{\partial\Omega_e} \boldsymbol{\lambda}^t \cdot \mathbf{v} d\partial\Omega_e \right) = \\ \sum_{\Omega_e \in \mathcal{T}} \left( \int_{\Omega_e} \mathbf{v} \cdot \mathbf{f} d\Omega_e + \int_{\Gamma} \mathbf{v} \cdot \boldsymbol{\sigma}_N d\partial\Omega_e \right)
+    \end{split}
+\end{equation}
+\begin{equation} \label{eq:hybrid2}
+    \sum_{\Omega_e \in \mathcal{T}} \left(-\int_{\Omega_e} (\nabla \cdot \mathbf{u}) q d\Omega_e -\int_{\Omega_e} \frac{3}{2\mu+\lambda}p q d\Omega_e \right) = \mathbf{0}
+\end{equation}
+\begin{equation} \label{eq:hybrid3}
+    \sum_{\Omega_e \in \mathcal{T}} \left(\int_{\partial\Omega_e} \mathbf{u} \cdot \boldsymbol{\eta}^t d\partial\Omega_e + \int_{\mathcal{E}^0} \llbracket \boldsymbol{\eta}^t \rrbracket \cdot \mathbf{u}^t d\partial\Omega_e \right) = \mathbf{0}
+\end{equation}
+\begin{equation} \label{eq:hybrid4}
+    \sum_{\Omega_e \in \mathcal{T}} \int_{\mathcal{E}^0} \llbracket \boldsymbol{\lambda}^t \rrbracket \cdot \mathbf{v}^t d\partial\Omega_e = \mathbf{0} \text{,}
+\end{equation}
+
+\noindent where Eq. \eqref{eq:hybrid4} was introduced to impose the continuity of the tangential traction across $\mathcal{E}^0$. Even though an additional constraint is introduced, $\boldsymbol{\lambda}^t$ is now associated to a single element therefore it can be statically condensed and eliminated from the global system. For a compressible solid, a symmetric positive-definite matrix is obtained with two unknowns, namely $\mathbf{u}$ and $\mathbf{u}^t$. For the incompressible case where pressures cannot be computed explicitly from the displacements, one mean pressure per element must be left in the global system. This still gives rise to a saddle-point matrix, however, with much better spectral properties and easier to solve compared to Eqs. \eqref{eq:semihybrid1}-\eqref{eq:semihybrid3}.
+
+\section{Cantilever beam subjected to an end shear load \label{subsec:bishop}}
+
+Figure \ref{fig:bishop-beam-geometry} shows a cantilever beam where $L=5$, $a=0.5$ and $b=0.5$. The beam is assumed to be fixed at $z=0$ and subjected to an unitary shear-force $F=\int_{-b}^{b}\int_{-a}^{a}\sigma_{yz}dxdy=1$ at $z=L$. The Young modulus is $E=1$ and different values for the poisson coefficient is used to test the formulation in different compressibility regimes, i.e. $\nu=0.3$, $\nu=0.4999$ and $\nu=0.5$.
 
 % \begin{figure}[H]
 % 	\centering
@@ -165,7 +217,7 @@ and
 The beam is discretized using hexahedral elements, where the element size is computed as $h_e=1/2^{N}$, with $N=\{0,1,2,3,4\}$. The coarsest ($h_e=1$) and finest ($h_e=0.0625$) meshes are shown in Figure \ref{fig:bishop-meshes}. A convergence test is performed for displacement, pressure, stress and mass conservation, where the error is computed according to the $L^2$ norm defined as:
 \vskip-.3cm
 \begin{equation} \label{eq:bishop-errors}
-	\left\| \mathbf{u} - \mathbf{u}^h \right\|_{L^2} \doteq \left[ \sum_{e=1}^{n} \int_{\Omega_e} \left(\mathbf{u} - \mathbf{u}^h\right)^2 d\Omega_e\right]^{1/2} \text{.}
+	\left\| \mathbf{u}^h-\mathbf{u}_{exact}  \right\|_{L^2} \doteq \left[ \sum_{e=1}^{n} \int_{\Omega_e} \left(\mathbf{u} - \mathbf{u}^h\right)^2 d\Omega_e\right]^{1/2} \text{.}
 \end{equation}
 
 \begin{figure}[!htb]
@@ -228,7 +280,11 @@ Figure \ref{fig:bishop-snapshot} plots the displacement, pressure, normal and sh
 
 \section{CONCLUSIONS}
 
-\bibliographystyle{plain}
+In this work we developed a primal hybrid formulation for tridimensional elasticity problems. The approximation space composed of $H(\text{div})$ functions for the normal displacements and $L^2$ functions for the pressure leads to a locally conservative scheme as it is De Rham compatible. The second hybridization of the tangential stresses was done in onder to make possible their elimination of the global system by applying a static condensation. This leads to a symmetric positive-definite matrix when analysing compressible solids and a saddle point problem with a single mean pressure per element for incompressible materials.
+
+The formulation was tested for a cantilever beam subjected to an end shear load and the results showed optimal convergence rates of $k+1$ for the displacement and $k$ for the remaining variables independently of the poisson coefficient. The formulation was able to capture the correct stress and displacement distributions for the compressible case and a divergence free displacement field for the incompressible case.
+
+\bibliographystyle{ieeetr}
 \bibliography{references}
 
 \end{document}
