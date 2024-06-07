@@ -185,12 +185,14 @@ We propose a second hybridization of the tangential stresses in order to recover
 
 Figure \ref{fig:bishop-beam-geometry} shows a cantilever beam where $L=5$, $a=0.5$ and $b=0.5$. The beam is assumed to be fixed at $z=0$ and subjected to an unitary shear-force $F=\int_{-b}^{b}\int_{-a}^{a}\sigma_{yz}dxdy=1$ at $z=L$. The Young modulus is $E=1$ and different values for the poisson coefficient is used to test the formulation in different compressibility regimes, i.e. $\nu=0.3$, $\nu=0.4999$ and $\nu=0.5$.
 
-% \begin{figure}[H]
-% 	\centering
-% 	\includegraphics[width=0.5\textwidth]{bishop-beam-geometry}
-% 	\caption{Cantilever beam subjected to an end shear load - geometry}
-% 	\label{fig:bishop-beam-geometry}
-% \end{figure}
+\begin{figure}[!htb]
+	\centering
+	\subfloat[\label{fig:bishop-beam-geometry}]{\includegraphics[scale=1.0]{figs/bishop-beam-geometry.pdf}} \hfill
+    \subfloat[\label{fig:bishop-meshes-a}]{\includegraphics[width=0.35\textwidth]{figs/bishop-mesh1.pdf}} \hfill
+	\subfloat[\label{fig:bishop-meshes-b}]{\includegraphics[width=0.35\textwidth]{figs/bishop-mesh2.pdf}}
+	\caption{Cantilever beam subjected to an end shear load - geometry (at left), coarsest mesh (at center) and finest mesh (at right)}
+	\label{fig:bishop-beam-problem}
+\end{figure}
 
 The analytical solutions for the stresses and displacements are available in \cite{bishop2014displacement} and written below:
 \vskip-.6cm
@@ -214,19 +216,19 @@ and
 \end{equation}
 \noindent where $I=4ab^3/3$ is the second moment of area about the $x$-axis, and the series above are evaluated with a finite number of terms $n=5$.
 
-The beam is discretized using hexahedral elements, where the element size is computed as $h_e=1/2^{N}$, with $N=\{0,1,2,3,4\}$. The coarsest ($h_e=1$) and finest ($h_e=0.0625$) meshes are shown in Figure \ref{fig:bishop-meshes}. A convergence test is performed for displacement, pressure, stress and mass conservation, where the error is computed according to the $L^2$ norm defined as:
+The beam is discretized using hexahedral elements, where the element size is computed as $h_e=1/2^{N}$, with $N=\{0,1,2,3,4\}$. The coarsest ($h_e=1$) and finest ($h_e=0.0625$) meshes are shown in Figures \ref{fig:bishop-meshes-a}-\ref{fig:bishop-meshes-b}. A convergence test is performed for displacement, pressure, stress and mass conservation, where the error is computed according to the $L^2$ norm defined as:
 \vskip-.3cm
 \begin{equation} \label{eq:bishop-errors}
 	\left\| \mathbf{u}^h-\mathbf{u}_{exact}  \right\|_{L^2} \doteq \left[ \sum_{e=1}^{n} \int_{\Omega_e} \left(\mathbf{u} - \mathbf{u}^h\right)^2 d\Omega_e\right]^{1/2} \text{.}
 \end{equation}
 
-\begin{figure}[!htb]
-	\centering
-	\subfloat[Coarsest]{\includegraphics[width=0.45\textwidth]{figs/bishop-mesh1.pdf}}\hfill
-	\subfloat[Finest]{\includegraphics[width=0.45\textwidth]{figs/bishop-mesh2.pdf}}
-	\caption{Cantilever beam subjected to an end shear load - meshes used for the convergence test}
-	\label{fig:bishop-meshes}
-\end{figure}
+% \begin{figure}[!htb]
+% 	\centering
+% 	\subfloat[Coarsest]{\includegraphics[width=0.45\textwidth]{figs/bishop-mesh1.pdf}}\hfill
+% 	\subfloat[Finest]{\includegraphics[width=0.45\textwidth]{figs/bishop-mesh2.pdf}}
+% 	\caption{Cantilever beam subjected to an end shear load - meshes used for the convergence test}
+% 	\label{fig:bishop-meshes}
+% \end{figure}
 
 The results are depicted in Figures \ref{fig:bishop-convergence-nu-03}-\ref{fig:bishop-convergence-nu-05} and present optimal convergence rates of $k+1$ for the displacement and $k$ for the remaining variables independently of the poisson coefficient. This is a nice feature as many formulations present a locking phenomena under quasi and full incompressibility. For the incompressible case ($\nu=0.5$), a divergence free displacement field is obtained even for the coarsest mesh thanks to the stable pair $H(\text{div},\Omega)$-$L^2(\Omega)$, with the error bounded to the machine precision.
 
@@ -283,6 +285,10 @@ Figure \ref{fig:bishop-snapshot} plots the displacement, pressure, normal and sh
 In this work we developed a primal hybrid formulation for tridimensional elasticity problems. The approximation space composed of $H(\text{div})$ functions for the normal displacements and $L^2$ functions for the pressure leads to a locally conservative scheme as it is De Rham compatible. The second hybridization of the tangential stresses was done in onder to make possible their elimination of the global system by applying a static condensation. This leads to a symmetric positive-definite matrix when analysing compressible solids and a saddle point problem with a single mean pressure per element for incompressible materials.
 
 The formulation was tested for a cantilever beam subjected to an end shear load and the results showed optimal convergence rates of $k+1$ for the displacement and $k$ for the remaining variables independently of the poisson coefficient. The formulation was able to capture the correct stress and displacement distributions for the compressible case and a divergence free displacement field for the incompressible case.
+
+\vspace{20pt}
+\noindent \textbf{Acknowledgements.} We gratefully acknowledge the support of EPIC - Energy Production Innovation Center through FAPESP/Equinor (Grant 2023/06981/-5)  and Total Energies Brazil through FUNCAMP (Process 76042-23). We also acknowledge the support of ANP (Brazil’s National Oil, Natural Gas and Biofuels Agency).
+\vspace{12pt}
 
 \bibliographystyle{ieeetr}
 \bibliography{references}
