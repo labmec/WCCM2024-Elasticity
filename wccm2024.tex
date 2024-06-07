@@ -93,31 +93,10 @@ The Generalized Hook law relates the stresses and strains by:
     \end{cases}
 \end{equation}
 
-\noindent where $\kappa=\frac{2\mu+\lambda}{3}$ is the material bulk modulus, $\mathcal{D}^{'}$ is the fourth-order deviatoric part of the elasticity tensor and $\boldsymbol{\sigma}'=\mathcal{D}^{'}:\boldsymbol{\varepsilon}$ is the deviatoric stress tensor, written using a Voight notation as:
-
+\noindent where $\kappa=\frac{2\mu+\lambda}{3}$ is the material bulk modulus, $\mathcal{D}^{'}$ is the fourth-order deviatoric part of the elasticity tensor and $\boldsymbol{\sigma}'$ refers to the deviatoric stress, computed as:
+\vskip-.3cm
 \begin{equation}
-    \begin{Bmatrix}
-        \boldsymbol{\sigma}'_{xx}\\
-        \boldsymbol{\sigma}'_{yy}\\
-        \boldsymbol{\sigma}'_{zz}\\
-        \boldsymbol{\sigma}'_{xy}\\
-        \boldsymbol{\sigma}'_{xz}\\
-        \boldsymbol{\sigma}'_{yz}
-    \end{Bmatrix} = 2\mu\begin{bmatrix}
-        2/3 & -1/3 & -1/3 & 0 & 0 & 0\\
-        -1/3 & 2/3 & -1/3 & 0 & 0 & 0\\
-        -1/3 & -1/3 & 2/3 & 0 & 0 & 0\\
-        0 & 0 & 0 & 1 & 0 & 0\\
-        0 & 0 & 0 & 0 & 1 & 0\\
-        0 & 0 & 0 & 0 & 0 & 1
-    \end{bmatrix} \cdot \begin{Bmatrix}
-        \boldsymbol{\varepsilon}_{xx}\\
-        \boldsymbol{\varepsilon}_{yy}\\
-        \boldsymbol{\varepsilon}_{zz}\\
-        \boldsymbol{\varepsilon}_{xy}\\
-        \boldsymbol{\varepsilon}_{xz}\\
-        \boldsymbol{\varepsilon}_{yz}
-    \end{Bmatrix} \text{.}
+    \boldsymbol{\sigma}' = 2\mu \left(\boldsymbol{\varepsilon} - \frac{1}{3}\text{tr}(\boldsymbol{\varepsilon})\right) \text{.}
 \end{equation}
 
 One notices that when $\lambda \rightarrow \infty$, Eq. \eqref{eq:strong2} recovers the classical mass conservation form of an incompressible material i.e. $\nabla \cdot \mathbf{u}=0$.
@@ -136,11 +115,11 @@ The primal displacement formulation is obtained by multiplying Eq. \eqref{eq:str
     \sum_{\Omega_e \in \mathcal{T}} \int_{\Omega_e} \boldsymbol{\varepsilon}(\mathbf{u}) : \mathcal{D}^{'} : \boldsymbol{\varepsilon}(\mathbf{v}) d\Omega_e = \sum_{\Omega_e \in \mathcal{T}} \left(\int_{\Omega_e} \mathbf{b} \cdot \mathbf{v} d\Omega_e + \int_{\Gamma_N} \mathbf{h} \cdot \mathbf{v} d\partial\Omega_e \right)
 \end{equation}
 
-\noindent is satisfied. Although the primal displacement formulation is simple to implement, it has some limitations i.e. locking phenomena under bending and incompressibility. To overcome these limitations, a shall introduce next the semi-hybrid formulation.
+\noindent is satisfied. Although the primal displacement formulation is simple to implement, it has some limitations i.e. locking phenomena under bending and incompressibility. To overcome these limitations, we shall introduce the semi-hybrid formulation.
 
 \subsection{Semi-hybrid formulation}
 
-In \cite{carvalho2024semi}, the authors proposed a semi-hybrid formulation for Stokes-Brinkman flows that use $H(\text{div})$ conforming velocity functions and discontinuos $L^2$ approximation for pressure. The same ideia can also be applied to elasticity. Let $\mathcal{V} = \mathbf{V}\cap H(\text{div},\Omega)$, $\Psi \subset L^2(\Omega)$ be spaces of vector functions and piece-wise scalars, respectively, for which the relation $\nabla \cdot \mathcal{V} \in \Psi$ holds. As $H(\text{div})$ approximation only guarantees the continuity of normal componentes of a vector across elements interface, a hybridization of the tangential velocity is performed. We introduce a third space defined as $\boldsymbol{\Lambda}^t \subset H^{-1/2}(\partial\Omega_e)$, for which the Lagrange multiplier $\boldsymbol{\lambda}^t \in \boldsymbol{\Lambda}^t$ has the meaning of a shear traction to weakly enforce the tangential displacement continuity. 
+In \cite{carvalho2024semi}, the authors proposed a semi-hybrid formulation for Stokes-Brinkman flows that uses $H(\text{div})$ conforming velocity functions and discontinuos $L^2$ approximation for pressure. The same ideia can also be applied to elasticity. Let $\mathcal{V} = \mathbf{V}\cap H(\text{div},\Omega)$, $\Psi \subset L^2(\Omega)$ be spaces of vector functions and piece-wise scalars, respectively, for which the relation $\nabla \cdot \mathcal{V} \in \Psi$ holds. As $H(\text{div})$ approximation only guarantees the continuity of normal componentes of a vector across elements interface, a hybridization of the tangential velocity is performed. We introduce a third space defined as $\boldsymbol{\Lambda}^t \subset H^{-1/2}(\partial\Omega_e)$, for which the Lagrange multiplier $\boldsymbol{\lambda}^t \in \boldsymbol{\Lambda}^t$ has the meaning of a shear traction to weakly enforce the tangential displacement continuity. 
 
 The weak statement for the semi-hybrid formulation thus reads: find $\{\mathbf{u},p,\boldsymbol{\lambda}^t\} \in \mathcal{V} \times \Psi \times \boldsymbol{\Lambda}^t$ such that for all $\mathbf{v},q,\boldsymbol{\eta}^t \in \mathcal{V}\times \Psi \times \boldsymbol{\Lambda}^t$:
 
@@ -181,7 +160,11 @@ We propose a second hybridization of the tangential stresses in order to recover
 
 \noindent where Eq. \eqref{eq:hybrid4} was introduced to impose the continuity of the tangential traction across $\mathcal{E}^0$. Even though an additional constraint is introduced, $\boldsymbol{\lambda}^t$ is now associated to a single element therefore it can be statically condensed and eliminated from the global system. For a compressible solid, a symmetric positive-definite matrix is obtained with two unknowns, namely $\mathbf{u}$ and $\mathbf{u}^t$. For the incompressible case where pressures cannot be computed explicitly from the displacements, one mean pressure per element must be left in the global system. This still gives rise to a saddle-point matrix, however, with much better spectral properties and easier to solve compared to Eqs. \eqref{eq:semihybrid1}-\eqref{eq:semihybrid3}.
 
-\section{Cantilever beam subjected to an end shear load \label{subsec:bishop}}
+\section{NUMERICAL EXAMPLES}
+
+This Section presents two examples to verify the primal hybrid formulation. The first one is a cantilever beam subjected to an end shear load, where a convergence test is carried out and compared to the analytical solution. The second example is a practical application where the proposed method was used to simulate a real structural casket used to run experimental analysis on petroleum engineering.
+
+\subsection{Cantilever beam subjected to an end shear load \label{subsec:bishop}}
 
 Figure \ref{fig:bishop-beam-geometry} shows a cantilever beam where $L=5$, $a=0.5$ and $b=0.5$. The beam is assumed to be fixed at $z=0$ and subjected to an unitary shear-force $F=\int_{-b}^{b}\int_{-a}^{a}\sigma_{yz}dxdy=1$ at $z=L$. The Young modulus is $E=1$ and different values for the poisson coefficient is used to test the formulation in different compressibility regimes, i.e. $\nu=0.3$, $\nu=0.4999$ and $\nu=0.5$.
 
@@ -222,29 +205,25 @@ The beam is discretized using hexahedral elements, where the element size is com
 	\left\| \mathbf{u}^h-\mathbf{u}_{exact}  \right\|_{L^2} \doteq \left[ \sum_{e=1}^{n} \int_{\Omega_e} \left(\mathbf{u} - \mathbf{u}^h\right)^2 d\Omega_e\right]^{1/2} \text{.}
 \end{equation}
 
-% \begin{figure}[!htb]
-% 	\centering
-% 	\subfloat[Coarsest]{\includegraphics[width=0.45\textwidth]{figs/bishop-mesh1.pdf}}\hfill
-% 	\subfloat[Finest]{\includegraphics[width=0.45\textwidth]{figs/bishop-mesh2.pdf}}
-% 	\caption{Cantilever beam subjected to an end shear load - meshes used for the convergence test}
-% 	\label{fig:bishop-meshes}
-% \end{figure}
-
 The results are depicted in Figures \ref{fig:bishop-convergence-nu-03}-\ref{fig:bishop-convergence-nu-05} and present optimal convergence rates of $k+1$ for the displacement and $k$ for the remaining variables independently of the poisson coefficient. This is a nice feature as many formulations present a locking phenomena under quasi and full incompressibility. For the incompressible case ($\nu=0.5$), a divergence free displacement field is obtained even for the coarsest mesh thanks to the stable pair $H(\text{div},\Omega)$-$L^2(\Omega)$, with the error bounded to the machine precision.
 
-\begin{figure}
+\begin{figure} [!htb]
     \centering
-    \subfloat[\label{fig:bishop-convergence-nu-03-a}Displacement]{\includegraphics[trim={0cm 0cm 2.0cm 0cm},clip,scale=0.75]{figs/bishop-disp-03.pdf}} \hfill
-    \subfloat[\label{fig:bishop-convergence-nu-03-b}Pressure]{\includegraphics[trim={0cm 0cm 2.0cm 0cm},clip,scale=0.75]{figs/bishop-pres-03.pdf}}
+    % \subfloat[]{\includegraphics[trim={0cm 0cm 2.0cm 0cm},clip,width=0.27\textwidth]{figs/bishop-disp-03.pdf}} \hfill
+    % \subfloat[]{\includegraphics[trim={0cm 0cm 2.0cm 0cm},clip,width=0.27\textwidth]{figs/bishop-disp-04999.pdf}} \hfill
+    % \subfloat[]{\includegraphics[trim={0cm 0cm 2.0cm 0cm},clip,width=0.27\textwidth]{figs/bishop-disp-05.pdf}}
+    % \includegraphics[trim={8.5cm 0cm 0cm 0cm},clip,scale=0.7]{figs/bishop-pres-03.pdf}
+    \subfloat[]{\includegraphics[trim={0cm 0cm 2.0cm 0cm},clip,scale=0.75]{figs/bishop-disp-03.pdf}} \hfill
+    \subfloat[]{\includegraphics[trim={0cm 0cm 2.0cm 0cm},clip,scale=0.75]{figs/bishop-pres-03.pdf}}
     \includegraphics[trim={8.5cm 0cm 0cm 0cm},clip,scale=0.75]{figs/bishop-pres-03.pdf}
-    \subfloat[\label{fig:bishop-convergence-nu-03-c}Stress]{\includegraphics[trim={0cm 0cm 2.0cm 0cm},clip,scale=0.75]{figs/bishop-stress-03.pdf}} \hfill
-    \subfloat[\label{fig:bishop-convergence-nu-03-d}Divergence]{\includegraphics[trim={0cm 0cm 2.0cm 0cm},clip,scale=0.75]{figs/bishop-div-03.pdf}}
+    \subfloat[]{\includegraphics[trim={0cm 0cm 2.0cm 0cm},clip,scale=0.75]{figs/bishop-stress-03.pdf}} \hfill
+    \subfloat[]{\includegraphics[trim={0cm 0cm 2.0cm 0cm},clip,scale=0.75]{figs/bishop-div-03.pdf}}
     \includegraphics[trim={8.5cm 0cm 0cm 0cm},clip,scale=0.75]{figs/bishop-pres-03.pdf}
-    \caption{Cantilever beam subjected to an end shear load - convergence analysis for the compressible case ($\nu=0.3$)}
+    \caption{Cantilever beam subjected to an end shear load - convergence analysis for the compressible case ($\nu=0.30$)}
     \label{fig:bishop-convergence-nu-03}
 \end{figure}
 
-\begin{figure}
+\begin{figure} [!htb]
     \centering
     \subfloat[\label{fig:bishop-convergence-nu-04999-a}Displacement]{\includegraphics[trim={0cm 0cm 2.0cm 0cm},clip,scale=0.75]{figs/bishop-disp-03.pdf}} \hfill
     \subfloat[\label{fig:bishop-convergence-nu-04999-b}Pressure]{\includegraphics[trim={0cm 0cm 2.0cm 0cm},clip,scale=0.75]{figs/bishop-pres-04999.pdf}}
@@ -256,7 +235,7 @@ The results are depicted in Figures \ref{fig:bishop-convergence-nu-03}-\ref{fig:
     \label{fig:bishop-convergence-nu-04999}
 \end{figure}
 
-\begin{figure}
+\begin{figure} [!htb]
     \centering
     \subfloat[\label{fig:bishop-convergence-nu-05-a}Displacement]{\includegraphics[trim={0cm 0cm 2.0cm 0cm},clip,scale=0.75]{figs/bishop-disp-05.pdf}} \hfill
     \subfloat[\label{fig:bishop-convergence-nu-05-b}Pressure]{\includegraphics[trim={0cm 0cm 2.0cm 0cm},clip,scale=0.75]{figs/bishop-pres-05.pdf}}
@@ -270,7 +249,7 @@ The results are depicted in Figures \ref{fig:bishop-convergence-nu-03}-\ref{fig:
 
 Figure \ref{fig:bishop-snapshot} plots the displacement, pressure, normal and shear stresses distributions obtained with the finest mesh using $k=2$ over the deformed configuration of the beam for the compressible case. The results qualitatively agrees with the reference solution of \cite{bishop2014displacement}.
 
-\begin{figure}
+\begin{figure} [!htb]
     \centering
     \subfloat[\label{fig:bishop-snapshot-a}Displacement]{\includegraphics[trim={2.5cm 0cm 9.2cm 0cm},clip,scale=0.2]{figs/bishop-snapshot-a.pdf}} \hfill
     \subfloat[\label{fig:bishop-snapshot-b}Pressure]{\includegraphics[trim={2.5cm 0cm 9.2cm 0cm},clip,scale=0.2]{figs/bishop-snapshot-b.pdf}} \\
@@ -280,14 +259,27 @@ Figure \ref{fig:bishop-snapshot} plots the displacement, pressure, normal and sh
     \label{fig:bishop-snapshot}
 \end{figure}
 
+\subsection{Experimental apparatus used in petroleum engineering}
+
+The second example consists on a thin-walled structural casket that is subjected to an internal pressure load due to the filling of saturated sand. This is a real apparatus designed to run experimental analyses of the loss of injectivity of produced water in petroleum wellbores, financed by Total Energies. The hull is made of steel, with Young modulus $E=210\times 10^{3}$ MPa, poisson coefficient $\nu=0.3$, thickness $t=45.1$ mm, internal radius $R_i=344.9$ mm and length $L=1000$ mm. The internal pressure is assumed to be $p=10.34$ MPa. A real picture of the module is shown in Figure \ref{fig:casket-1}. The Von Mises stress and displacement fields are plotted in Figures \ref{fig:casket-2}-\ref{fig:casket-3}. From a qualitatively point of view, the results are in agreement with the expected physics of the problem.
+
+\begin{figure} [!htb]
+    \centering
+    \subfloat[\label{fig:casket-1}]{\includegraphics[scale=0.9]{figs/casket-1.pdf}} \hfill
+    \subfloat[\label{fig:casket-2}]{\includegraphics[scale=0.2]{figs/1m-module-vonmises.png}} \hfill
+    \subfloat[\label{fig:casket-3}]{\includegraphics[scale=0.2]{figs/1m-module-disp.png}}
+    \caption{Structural casket subjected to an internal pressure load - real apparatus (at left) and simulation results (Von Mises stress at center and displacement at right)}
+    \label{fig:casket}
+\end{figure}
+
 \section{CONCLUSIONS}
 
 In this work we developed a primal hybrid formulation for tridimensional elasticity problems. The approximation space composed of $H(\text{div})$ functions for the normal displacements and $L^2$ functions for the pressure leads to a locally conservative scheme as it is De Rham compatible. The second hybridization of the tangential stresses was done in onder to make possible their elimination of the global system by applying a static condensation. This leads to a symmetric positive-definite matrix when analysing compressible solids and a saddle point problem with a single mean pressure per element for incompressible materials.
 
-The formulation was tested for a cantilever beam subjected to an end shear load and the results showed optimal convergence rates of $k+1$ for the displacement and $k$ for the remaining variables independently of the poisson coefficient. The formulation was able to capture the correct stress and displacement distributions for the compressible case and a divergence free displacement field for the incompressible case.
+The formulation was tested for a cantilever beam subjected to an end shear load and the results showed optimal convergence rates of $k+1$ for the displacement and $k$ for the remaining variables independently of the poisson coefficient. The formulation was able to capture the correct stress and displacement distributions for the compressible case and a divergence free displacement field for the incompressible case. The simulation of the real scale structural hull subjected to an internal pressure qualitevely indicates that the proposed method could be applied to real engineering problems. 
 
 \vspace{20pt}
-\noindent \textbf{Acknowledgements.} We gratefully acknowledge the support of EPIC - Energy Production Innovation Center through FAPESP/Equinor (Grant 2023/06981/-5)  and Total Energies Brazil through FUNCAMP (Process 76042-23). We also acknowledge the support of ANP (Brazil’s National Oil, Natural Gas and Biofuels Agency).
+\noindent \textbf{Acknowledgements.} We gratefully acknowledge the support of EPIC - Energy Production Innovation Center through FAPESP/Equinor (Grant 2023/06981/-5),  Total Energies Brazil through FUNCAMP (Process 76042-23) and the Brazilian National Council for Scientific and Technological Development (grants 305823/2017-5 and 309597/2021-8). We also acknowledge the support of ANP (Brazil’s National Oil, Natural Gas and Biofuels Agency).
 \vspace{12pt}
 
 \bibliographystyle{ieeetr}
