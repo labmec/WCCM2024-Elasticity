@@ -61,7 +61,7 @@ In general elasticity, the governing equation of a continuum body $\Omega \in \m
 \end{equation}
 \vskip-.3cm
 \begin{equation}
-    \boldsymbol{\sigma} \cdot \mathbf{n} = \mathbf{h} \hspace{0.2cm} \text{on } \partial\Omega_N \text{.} 
+    \boldsymbol{\sigma} \cdot \mathbf{n} = \boldsymbol{\sigma}_N \hspace{0.2cm} \text{on } \partial\Omega_N \text{.} 
 \end{equation}
 
 The Generalized Hook law relates the stresses and strains by:
@@ -89,7 +89,7 @@ The Generalized Hook law relates the stresses and strains by:
         -\nabla \cdot \boldsymbol{\sigma}'\left(\mathbf{u}\right) + \nabla p - \mathbf{b} = \mathbf{0} \hspace{0.2cm} \text{in } \Omega\\
         -\nabla \cdot \mathbf{u} - \frac{1}{\kappa}p = 0\hspace{0.2cm} \text{in } \Omega\\
         \mathbf{u} = \mathbf{u}_D \hspace{0.2cm} \text{on } \partial\Omega_D\\
-        \boldsymbol{\sigma} \cdot \mathbf{n} = \mathbf{h} \hspace{0.2cm} \text{on } \partial\Omega_N
+        \boldsymbol{\sigma} \cdot \mathbf{n} = \boldsymbol{\sigma}_N \hspace{0.2cm} \text{on } \partial\Omega_N
     \end{cases}
 \end{equation}
 
@@ -112,7 +112,7 @@ Let $\mathcal{T}=\{\Omega_e,e=1, \cdots, n_e \}$ be a partition of $\Omega$ in $
 The primal displacement formulation is obtained by multiplying Eq. \eqref{eq:strong1} by test functions $\mathbf{v} \in \mathbf{V}\text{ } | \text{ }\mathbf{V} \subset H^1(\mathcal{T})$ and integrating over the discretized domain $\mathcal{T}$ \cite{becker1981finite}. The weak statement reads: find $\mathbf{u} \in \mathbf{V}$ such that for all $\mathbf{v} \in \mathbf{V}$,
 
 \begin{equation} \label{eq:primal-displacement}
-    \sum_{\Omega_e \in \mathcal{T}} \int_{\Omega_e} \boldsymbol{\varepsilon}(\mathbf{u}) : \mathcal{D}^{'} : \boldsymbol{\varepsilon}(\mathbf{v}) d\Omega_e = \sum_{\Omega_e \in \mathcal{T}} \left(\int_{\Omega_e} \mathbf{b} \cdot \mathbf{v} d\Omega_e + \int_{\Gamma_N} \mathbf{h} \cdot \mathbf{v} d\partial\Omega_e \right)
+    \sum_{\Omega_e \in \mathcal{T}} \int_{\Omega_e} \boldsymbol{\varepsilon}(\mathbf{u}) : \mathcal{D} : \boldsymbol{\varepsilon}(\mathbf{v}) d\Omega_e = \sum_{\Omega_e \in \mathcal{T}} \left(\int_{\Omega_e} \mathbf{v} \cdot \mathbf{b} d\Omega_e + \int_{\Gamma_N} \mathbf{v} \cdot \boldsymbol{\sigma}_N \;d\partial\Omega_e \right)
 \end{equation}
 
 \noindent is satisfied. Although the primal displacement formulation is simple to implement, it has some limitations i.e. locking phenomena under bending and incompressibility. To overcome these limitations, we shall introduce the semi-hybrid formulation.
@@ -121,7 +121,7 @@ The primal displacement formulation is obtained by multiplying Eq. \eqref{eq:str
 The mixed formulation is obtained by multiplying the first equation in Eq. \eqref{eq:strong2} by test functions $\mathbf{v} \in \mathbf{V}\text{ } | \text{ }\mathbf{V} \subset H^1(\mathcal{T})$ and by multiplying the second equation in Eq. \eqref{eq:strong2} by $q\in L^2(\Omega)$ and integrating over the discretized domain $\mathcal{T}$. The weak statement reads: find $\mathbf{u} \in \mathbf{V}$ and $p\in L^2(\Omega)$ such that for all $\mathbf{v} \in \mathbf{V}$ and $q\in L^2(\Omega)$,
 
 \begin{equation} \label{eq:mixedA}
-        \int_{\Omega} \boldsymbol{\varepsilon}(\mathbf{v}) : \mathcal{D}^{''} : \boldsymbol{\varepsilon}(\mathbf{u}) d\Omega - \int_{\Omega_e} p \;(\nabla \cdot \mathbf{v}) d\Omega =  \int_{\Omega} \mathbf{v} \cdot \mathbf{f} d\Omega + \int_{\Gamma} \mathbf{v} \cdot \boldsymbol{\sigma}_N d\partial\Omega
+        \int_{\Omega} \boldsymbol{\varepsilon}(\mathbf{v}) : \mathcal{D}^{'} : \boldsymbol{\varepsilon}(\mathbf{u}) d\Omega - \int_{\Omega_e} p \;(\nabla \cdot \mathbf{v}) d\Omega =  \int_{\Omega} \mathbf{v} \cdot \mathbf{b} d\Omega + \int_{\Gamma} \mathbf{v} \cdot \boldsymbol{\sigma}_N \;d\partial\Omega
 \end{equation}
 \begin{equation} \label{eq:mixedB}
     -\int_{\Omega} (\nabla \cdot \mathbf{u}) \;q\; d\Omega -\int_{\Omega} \frac{3}{2\mu+\lambda}\;p \;q\; d\Omega = \mathbf{0}
@@ -135,7 +135,7 @@ The weak statement for the semi-hybrid formulation thus reads: find $\{\mathbf{u
 
 \begin{equation} \label{eq:semihybrid1}
     \begin{split}
-        \sum_{\Omega_e \in \mathcal{T}} \left( \int_{\Omega_e} \boldsymbol{\varepsilon}(\mathbf{v}) : \mathcal{D}^{''} : \boldsymbol{\varepsilon}(\mathbf{u}) d\Omega_e - \int_{\Omega_e} p\; (\nabla \cdot \mathbf{v}) d\Omega_e \right) + \int_{\mathcal{E}^0} \boldsymbol{\lambda}^t \cdot \llbracket \mathbf{v} \rrbracket \;d\mathcal{E}^0 = \\ \sum_{\Omega_e \in \mathcal{T}} \left( \int_{\Omega_e} \mathbf{v} \cdot \mathbf{f} d\Omega_e + \int_{\Gamma} \mathbf{v} \cdot \boldsymbol{\sigma}_N \; d\partial\Omega_e \right)
+        \sum_{\Omega_e \in \mathcal{T}} \left( \int_{\Omega_e} \boldsymbol{\varepsilon}(\mathbf{v}) : \mathcal{D}^{'} : \boldsymbol{\varepsilon}(\mathbf{u}) d\Omega_e - \int_{\Omega_e} p\; (\nabla \cdot \mathbf{v}) d\Omega_e \right) + \int_{\mathcal{E}^0} \boldsymbol{\lambda}^t \cdot \llbracket \mathbf{v} \rrbracket \;d\mathcal{E}^0 = \\ \sum_{\Omega_e \in \mathcal{T}} \left( \int_{\Omega_e} \mathbf{v} \cdot \mathbf{b} d\Omega_e + \int_{\Gamma} \mathbf{v} \cdot \boldsymbol{\sigma}_N \; d\partial\Omega_e \right)
     \end{split}
 \end{equation}
 \begin{equation} \label{eq:semihybrid2}
@@ -155,7 +155,7 @@ We propose a second hybridization of the tangential stresses in order to recover
 
 \begin{equation} \label{eq:hybrid1}
     \begin{split}
-        \sum_{\Omega_e \in \mathcal{T}} \left( \int_{\Omega_e} \boldsymbol{\varepsilon}(\mathbf{v}) : \mathcal{D}^{''} : \boldsymbol{\varepsilon}(\mathbf{u})\; d\Omega_e + \int_{\Omega_e} p \;(\nabla \cdot \mathbf{v}) d\Omega_e - \int_{\partial\Omega_e} \boldsymbol{\lambda}^t_e \cdot \mathbf{v}\; d\partial\Omega_e \right) = \\ \sum_{\Omega_e \in \mathcal{T}} \left( \int_{\Omega_e} \mathbf{v} \cdot \mathbf{f} \;d\Omega_e + \int_{\Gamma} \mathbf{v} \cdot \boldsymbol{\sigma}_N\; d\partial\Omega_e \right)
+        \sum_{\Omega_e \in \mathcal{T}} \left( \int_{\Omega_e} \boldsymbol{\varepsilon}(\mathbf{v}) : \mathcal{D}^{'} : \boldsymbol{\varepsilon}(\mathbf{u})\; d\Omega_e - \int_{\Omega_e} p \;(\nabla \cdot \mathbf{v}) d\Omega_e - \int_{\partial\Omega_e} \boldsymbol{\lambda}^t_e \cdot \mathbf{v}\; d\partial\Omega_e \right) = \\ \sum_{\Omega_e \in \mathcal{T}} \left( \int_{\Omega_e} \mathbf{v} \cdot \mathbf{b} \;d\Omega_e + \int_{\Gamma} \mathbf{v} \cdot \boldsymbol{\sigma}_N\; d\partial\Omega_e \right)
     \end{split}
 \end{equation}
 \begin{equation} \label{eq:hybrid2}
@@ -165,7 +165,7 @@ We propose a second hybridization of the tangential stresses in order to recover
     \sum_{\Omega_e \in \mathcal{T}} \left(\int_{\partial\Omega_e} (\mathbf{u}^t-\mathbf{u}) \cdot \boldsymbol{\eta}^t_e\; d\partial\Omega_e \right)  = \mathbf{0}
 \end{equation}
 \begin{equation} \label{eq:hybrid4}
-     \int_{\mathcal{E}^0} \left\langle \boldsymbol{\lambda}^t_e \right\rangle \cdot \mathbf{v}^t\; d\mathcal{E}^0 = \mathbf{0} \text{,}
+    \sum_{\Omega_e \in \mathcal{T}} \int_{\partial\Omega_e} \boldsymbol{\lambda}^t_e \cdot \mathbf{v}^t\; d\partial\Omega_e = \mathbf{0} \text{,}
 \end{equation}
 
 \noindent where Eq. \eqref{eq:hybrid4} was introduced to impose the continuity of the tangential traction across $\mathcal{E}^0$. Even though an additional constraint is introduced, $\boldsymbol{\lambda}^t$ is now associated to a single element therefore it can be statically condensed and eliminated from the global system. For a compressible solid, a symmetric positive-definite matrix is obtained with two unknowns, namely $\mathbf{u} \in H(\text{div},\Omega)$ and $\mathbf{u}^t \in H^{1/2}(\partial\Omega_e)$. For the incompressible case where pressures cannot be computed explicitly from the displacements, one mean pressure per element acts as a Lagrange multiplier in the global system. This still gives rise to a saddle-point matrix, however, with much better spectral properties and easier to solve compared to Eqs. \eqref{eq:semihybrid1}-\eqref{eq:semihybrid3}.
